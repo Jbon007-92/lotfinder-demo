@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" data-static="1">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LotFinder: auction cars ranked by true margin</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c2410c'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./">Lot<span>Finder</span></a>
+    <p class="tag">Auction cars ranked by what they really cost: bid, fees, estimated repairs, transport.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <form id="search" class="search" autocomplete="off">
+    <label>Make
+      <select id="make" name="make"><option value="">Any make</option></select>
+    </label>
+    <label>Model
+      <select id="model" name="model" disabled><option value="">Any model</option></select>
+    </label>
+    <label>Year
+      <select id="year" name="year"><option value="">Any year</option></select>
+    </label>
+    <button type="submit">Find deals</button>
+  </form>
+
+  <p id="status" class="status" role="status"></p>
+  <ol id="results" class="results"></ol>
+  <p class="fine">Sample data. Repair costs are estimates read from photos and can miss hidden
+    damage; margins assume the current bid. Inspect before you bid.</p>
+</main>
+
+<dialog id="lot" class="lot">
+  <form method="dialog"><button class="close" aria-label="Close">×</button></form>
+  <div id="lot-body"></div>
+</dialog>
+
+<script src="static/app.js"></script>
+</body>
+</html>
