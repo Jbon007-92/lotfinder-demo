@@ -69,6 +69,8 @@ async function search() {
 }
 
 function render(lots) {
+  // Lots whose photos were analyzed first: an unanalyzed margin leaves repairs out.
+  lots = [...lots.filter((l) => l.photos_read), ...lots.filter((l) => !l.photos_read)];
   const list = $("results");
   list.replaceChildren();
   $("status").textContent = lots.length
@@ -94,18 +96,21 @@ function render(lots) {
           { class: "chips" },
           el("span", { class: "chip", text: lot.title_type + " title" }),
           lot.primary_damage ? el("span", { class: "chip", text: lot.primary_damage }) : null,
-          el("span", {
-            class: "chip est",
-            text: `Est. repairs ${usd(lot.repairs_low_cents)}–${usd(lot.repairs_high_cents)}`,
-          }),
-          el("span", { class: "chip", text: `${lot.parts_to_replace} parts to replace` }),
+          lot.source === "ebay" ? el("span", { class: "chip", text: "Live eBay auction" }) : el("span", { class: "chip", text: "Sample lot" }),
+          lot.photos_read
+            ? el("span", {
+                class: "chip est",
+                text: `Est. repairs ${usd(lot.repairs_low_cents)}–${usd(lot.repairs_high_cents)}`,
+              })
+            : el("span", { class: "chip est", text: "Photos not analyzed yet" }),
+          lot.photos_read ? el("span", { class: "chip", text: `${lot.parts_to_replace} parts to replace` }) : null,
         ),
       ),
       el(
         "div",
         { class: "money" },
         el("div", { class: "margin " + marginClass, text: usd(lot.margin_cents) }),
-        el("div", { class: "small", text: `est. margin · ${lot.margin_pct}%` }),
+        el("div", { class: "small", text: lot.photos_read ? `est. margin · ${lot.margin_pct}%` : "margin before repairs" }),
         el("div", { class: "small", text: `all-in ${usd(lot.all_in_cents)} · bid ${usd(lot.bid_cents)}` }),
       ),
     );
@@ -165,7 +170,12 @@ async function openLot(id) {
       ),
     );
   }
-  if (!d.repair_lines.length) parts.append(el("tr", {}, el("td", { colspan: "5", text: "No damage found in the photos." })));
+  if (!d.repair_lines.length) {
+    const none = d.photos_read
+      ? "No damage found in the photos."
+      : "Photo analysis is not switched on yet, so repairs are not estimated: the margin below assumes no repairs.";
+    parts.append(el("tr", {}, el("td", { colspan: "5", text: none })));
+  }
 
   const cost = el("table", {}, row("Current bid", d.bid_cents));
   for (const f of d.fees) cost.append(row(f.name, f.cents));
@@ -181,10 +191,13 @@ async function openLot(id) {
     el("h2", { text: d.title }),
     el("div", { class: "meta", text: `${d.odometer_mi.toLocaleString("en-US")} mi · ${d.location} · ${d.source} · ${d.title_type} title · ends ${d.ends}` }),
     photos,
+    d.url ? el("p", {}, el("a", { href: d.url, target: "_blank", rel: "noopener noreferrer", text: "View this listing on eBay ↗" })) : null,
     el("div", {
       class: "notice",
-      text: "Estimate only. Parts were read from the photos and priced at a shop rate of " +
-        usd(d.labor_rate_cents) + "/h; hidden damage (frame, flood, electrical) is not visible in photos.",
+      text: d.photos_read
+        ? "Estimate only. Parts were read from the photos and priced at a shop rate of " +
+          usd(d.labor_rate_cents) + "/h; hidden damage (frame, flood, electrical) is not visible in photos."
+        : "These photos have not been analyzed yet, so the cost below leaves repairs out. Look at the photos and the eBay listing before you bid.",
     }),
     el("h4", { text: "Parts to replace or repair" }),
     parts,
