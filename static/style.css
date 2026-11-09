@@ -54,3 +54,29 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
 tr.total td { font-weight: 800; border-bottom: 0; }
 .notice { background: #fff7ed; color: #9a3412; border-radius: 8px; padding: 8px 10px; font-size: 13px; margin: 10px 0; }
 h4 { margin: 18px 0 6px; }
+
+/* Check a lot (check.html) */
+.nav { margin: 14px 0 0; font-size: 14px; }
+.nav a, .result a { color: var(--accent); }
+.check fieldset { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px;
+  margin: 14px 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.check legend { font-weight: 700; padding: 0 6px; }
+.check label { display: flex; flex-direction: column; font-size: 12px; font-weight: 600; color: var(--muted); gap: 4px; }
+.check label.wide { grid-column: 1 / -1; }
+.check input, .check select { font: inherit; font-size: 15px; height: 40px; border: 1px solid var(--line);
+  border-radius: 8px; padding: 0 8px; background: #fff; color: var(--ink); min-width: 0; }
+.check input[type="file"] { grid-column: 1 / -1; height: auto; padding: 8px; }
+.check .photos { grid-column: 1 / -1; }
+.check button { font: inherit; font-size: 16px; height: 44px; border: 0; border-radius: 8px; padding: 0 22px;
+  background: var(--accent); color: #fff; font-weight: 700; cursor: pointer; }
+.parts { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.check label.part { flex-direction: row; align-items: center; justify-content: space-between; gap: 8px;
+  font-weight: 500; color: var(--ink); font-size: 14px; }
+.check label.part select { height: 34px; width: 104px; flex: none; }
+.error { color: var(--bad); font-weight: 600; min-height: 1.2em; }
+.result { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin: 14px 0; }
+.result h2 { margin: 0 0 4px; }
+.result .margin { font-size: 26px; font-weight: 800; margin: 8px 0; }
+.result .margin.pos { color: var(--good); } .result .margin.neg { color: var(--bad); }
+.cta { display: inline-block; margin: 6px 0 0; font-size: 14px; color: #fb923c; font-weight: 600; }
+@media (max-width: 640px) { .check fieldset { grid-template-columns: 1fr 1fr; } }

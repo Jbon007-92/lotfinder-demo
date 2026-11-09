@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" data-static="1">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Check a lot · LotFinder</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23c2410c'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./">Lot<span>Finder</span></a>
+    <p class="tag">Check a Copart or IAAI lot: what it really costs once fees, repairs and transport are in.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="nav"><a href="./">← Back to deals</a></p>
+  <form id="check" class="check" autocomplete="off" novalidate>
+    <fieldset>
+      <legend>The lot</legend>
+      <label class="wide">Lot link (Copart or IAAI)
+        <input id="link" type="url" inputmode="url" placeholder="https://www.copart.com/lot/12345678/..." maxlength="500">
+      </label>
+      <label>Year <input id="year" type="number" min="1980" max="2027" required></label>
+      <label>Make <input id="make" list="makes" maxlength="40" required></label>
+      <label>Model <input id="model" list="models" maxlength="40" required></label>
+      <label>Mileage <input id="miles" type="number" min="0" max="999999" step="1" value="0"></label>
+      <label>Title
+        <select id="title">
+          <option value="salvage">Salvage</option>
+          <option value="clean">Clean</option>
+          <option value="rebuilt">Rebuilt</option>
+          <option value="parts-only">Parts only</option>
+        </select>
+      </label>
+      <label>Current bid ($) <input id="bid" type="number" min="0" max="10000000" step="1" required></label>
+      <label>Market value once repaired ($) <input id="value" type="number" min="0" max="10000000" step="1" placeholder="estimated for you if blank"></label>
+      <label>Transport ($) <input id="transport" type="number" min="0" max="100000" step="1"></label>
+      <datalist id="makes"></datalist><datalist id="models"></datalist>
+    </fieldset>
+
+    <fieldset>
+      <legend>Photos <span class="small">(stay on your device; nothing is uploaded)</span></legend>
+      <input id="photos" type="file" accept="image/*" multiple>
+      <div id="previews" class="photos"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Damaged parts <span class="small">(look at the photos and tick what needs work)</span></legend>
+      <div id="parts" class="parts"></div>
+    </fieldset>
+
+    <p id="error" class="error" role="alert"></p>
+    <button type="submit">Check this lot</button>
+  </form>
+
+  <section id="result" class="result" hidden></section>
+  <p class="fine">Estimate only, from LotFinder's illustrative fee, parts and value tables. The parts
+    list is yours; hidden damage (frame, flood, electrical) does not show in photos. Inspect before you bid.
+    LotFinder does not read or copy anything from Copart or IAAI: the link is only shown back to you.</p>
+</main>
+<script src="static/score.js"></script>
+<script src="static/check.js"></script>
+</body>
+</html>
