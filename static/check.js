@@ -130,7 +130,7 @@ function render(link, lot, d, valueEstimated) {
   const name = lot.source === "copart" ? "Copart" : "IAAI";
   const kids = [
     el("h2", { text: `${lot.year} ${lot.make} ${lot.model}` }),
-    el("p", { class: "meta" }, `${name}${link.lotNumber ? " lot " + link.lotNumber : ""} · `, el("a", { href: link.url, target: "_blank", rel: "noopener noreferrer", text: "open the listing ↗" })),
+    el("p", { class: "meta" }, `${name}${link.lotNumber ? " lot " + link.lotNumber : ""} · `, el("a", { href: link.url, target: "_blank", rel: "noopener noreferrer", text: "open the listing ↗" }), LotScore.kbbUrl(lot.year, lot.make, lot.model) ? " · " : null, LotScore.kbbUrl(lot.year, lot.make, lot.model) ? el("a", { href: LotScore.kbbUrl(lot.year, lot.make, lot.model), target: "_blank", rel: "noopener noreferrer", text: "check the KBB value ↗" }) : null),
     el("div", { class: "margin " + (d.margin_cents >= 0 ? "pos" : "neg"), text: `${usd(d.margin_cents)} est. margin (${d.margin_pct}%)` }),
     unknownValue ? el("div", { class: "notice", text: "LotFinder has no value figures for this make and model yet: enter the market value above for a real margin." }) : null,
     el("h4", { text: "Parts to replace or repair" }),

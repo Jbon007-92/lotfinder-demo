@@ -5,6 +5,12 @@ const $ = (id) => document.getElementById(id);
 const usd = (cents) =>
   (cents < 0 ? "-$" : "$") + Math.round(Math.abs(cents) / 100).toLocaleString("en-US");
 
+// Opens the car's Kelley Blue Book page to compare values (KBB has no public API).
+function kbbLink(year, make, model) {
+  const url = window.LotScore && LotScore.kbbUrl(year, make, model);
+  return url ? el("p", {}, el("a", { href: url, target: "_blank", rel: "noopener noreferrer", text: "Check the KBB value ↗" })) : null;
+}
+
 function el(tag, attrs = {}, ...kids) {
   const node = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
@@ -192,6 +198,7 @@ async function openLot(id) {
     el("div", { class: "meta", text: `${d.odometer_mi.toLocaleString("en-US")} mi · ${d.location} · ${d.source} · ${d.title_type} title · ends ${d.ends}` }),
     photos,
     d.url ? el("p", {}, el("a", { href: d.url, target: "_blank", rel: "noopener noreferrer", text: "View this listing on eBay ↗" })) : null,
+    kbbLink(d.year, d.make, d.model),
     el("div", {
       class: "notice",
       text: d.photos_read

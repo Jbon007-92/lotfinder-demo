@@ -116,7 +116,15 @@
     };
   }
 
-  const LotScore = { score, marketValue, buyerFee };
+  // Kelley Blue Book's page for this year, make and model (a plain link; nothing is fetched).
+  function kbbUrl(year, make, model) {
+    const slug = (s) => String(s || "").toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+    const y = Number(year);
+    if (!slug(make) || !slug(model) || !(y >= 1980 && y <= 2039)) return null;
+    return `https://www.kbb.com/${slug(make)}/${slug(model)}/${y}/`;
+  }
+
+  const LotScore = { score, marketValue, buyerFee, kbbUrl };
   if (typeof module !== "undefined" && module.exports) module.exports = LotScore;
   else root.LotScore = LotScore;
 })(typeof globalThis !== "undefined" ? globalThis : this);
