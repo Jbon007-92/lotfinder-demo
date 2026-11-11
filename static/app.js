@@ -11,6 +11,36 @@ function kbbLink(year, make, model) {
   return url ? el("p", {}, el("a", { href: url, target: "_blank", rel: "noopener noreferrer", text: "Check the KBB value ↗" })) : null;
 }
 
+// Where the value comes from, in a few words (card) or a sentence (details).
+function valueChip(lot) {
+  const b = lot.value_basis || {};
+  if (b.kind === "ebay") return `Value: eBay median of ${b.n} listings`;
+  if (b.kind === "none") return "No value figure for this car";
+  return "Value: rough built-in estimate";
+}
+
+function valueLines(d) {
+  const b = d.value_basis || {};
+  const link = (url, text) => el("a", { href: url, target: "_blank", rel: "noopener noreferrer", text });
+  const out = [];
+  if (b.kind === "ebay") {
+    out.push(el("p", {}, `Value from ${b.n} clean-title eBay Motors listings, ${b.years[0]}–${b.years[1]} ${d.make} ${d.model}: ` +
+      `${usd(b.low_cents)} to ${usd(b.high_cents)}, median ${usd(b.median_cents)}. Asking prices run high, so it is taken ` +
+      `${Math.round(b.trim * 100)}% lower, then adjusted for this car's miles and ${d.title_type} title. `, link(b.url, "See the listings ↗")));
+  } else {
+    const few = b.n ? `only ${b.n} comparable eBay listing${b.n === 1 ? "" : "s"}` : "no comparable eBay listings";
+    out.push(el("p", {}, b.kind === "none"
+      ? `No value: ${few} and no built-in figure for this car. `
+      : `Rough built-in estimate (${few}, too few to trust). `, b.url ? link(b.url, "Search eBay ↗") : null));
+  }
+  const c = d.value_check;
+  if (c) {
+    out.push(el("p", {}, `Google check: prices in ${c.n} search results run ${usd(c.low_cents)} to ${usd(c.high_cents)}, ` +
+      `median ${usd(c.median_cents)} (not used in the margin). `, link(c.url, "See the search ↗")));
+  }
+  return out;
+}
+
 function el(tag, attrs = {}, ...kids) {
   const node = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
@@ -110,6 +140,7 @@ function render(lots) {
               })
             : el("span", { class: "chip est", text: "Photos not analyzed yet" }),
           lot.photos_read ? el("span", { class: "chip", text: `${lot.parts_to_replace} parts to replace` }) : null,
+          el("span", { class: "chip", text: valueChip(lot) }),
         ),
       ),
       el(
@@ -198,6 +229,7 @@ async function openLot(id) {
     el("div", { class: "meta", text: `${d.odometer_mi.toLocaleString("en-US")} mi · ${d.location} · ${d.source} · ${d.title_type} title · ends ${d.ends}` }),
     photos,
     d.url ? el("p", {}, el("a", { href: d.url, target: "_blank", rel: "noopener noreferrer", text: "View this listing on eBay ↗" })) : null,
+    ...valueLines(d),
     kbbLink(d.year, d.make, d.model),
     el("div", {
       class: "notice",
