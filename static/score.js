@@ -126,17 +126,24 @@
 
   // Used mechanical parts to price on eBay (same list and categories as adapters/parts.py).
   const PARTS = [
-    ["engine", "Used engine", "33615"], ["transmission", "Used transmission", "171115"],
-    ["cylinder_head", "Cylinder head", "33617"], ["turbo", "Turbocharger", "33742"],
-    ["alternator", "Alternator", "177697"], ["starter", "Starter", "177699"],
-    ["radiator", "Radiator", "33602"], ["ac_compressor", "A/C compressor", "33543"],
+    ["engine", "Used engine", "33615", "", true], ["transmission", "Used transmission", "171115", "", true],
+    ["cylinder_head", "Cylinder head", "33617", "", true], ["turbo", "Turbocharger", "33742", "", true],
+    ["alternator", "Alternator", "177697", "", true], ["starter", "Starter", "177699", "", true],
+    ["radiator", "Radiator", "33602", "", true], ["ac_compressor", "A/C compressor", "33543", "", true],
+    ["head_gasket", "Head gasket set", "33665", "head gasket set", false],
+    ["timing_kit", "Timing chain/belt kit", "262137", "", false], ["water_pump", "Water pump", "33604", "", false],
+    ["fuel_pump", "Fuel pump", "33555", "", false], ["ignition_coil", "Ignition coil", "262183", "", false],
+    ["catalytic", "Catalytic converter", "33629", "", false],
+    ["torque_converter", "Torque converter", "63692", "", false],
+    ["ecu", "Engine computer (ECM)", "33596", "engine computer", true],
   ];
 
   // Used, Buy It Now listings of one part for this car on ebay.com (a plain link).
-  function partsUrl(year, make, model, category) {
+  function partsUrl(year, make, model, category, words = "", used = true) {
     const y = Number(year);
     if (!make || !model || !(y >= 1980 && y <= 2039)) return null;
-    const q = new URLSearchParams({ _nkw: `${y} ${make} ${model}`, _sacat: category, LH_ItemCondition: "3000", LH_BIN: "1" });
+    const q = new URLSearchParams({ _nkw: `${y} ${make} ${model} ${words}`.trim(), _sacat: category, LH_BIN: "1" });
+    if (used) q.set("LH_ItemCondition", "3000");
     return "https://www.ebay.com/sch/i.html?" + q.toString();
   }
 
@@ -145,9 +152,9 @@
     const car = ((published && published.cars) || []).find(
       (c) => c.year === Number(year) && c.make === String(make || "").toLowerCase() && c.model === String(model || "").toLowerCase(),
     );
-    return PARTS.map(([key, label, category]) => {
+    return PARTS.slice(0, 8).map(([key, label, category, words, used]) => {
       const got = car && car.parts && car.parts[key];
-      return { key, label, url: partsUrl(year, make, model, category), ...(got && got.median_cents != null ? { n: got.n, low_cents: got.low_cents, median_cents: got.median_cents, high_cents: got.high_cents } : {}) };
+      return { key, label, url: partsUrl(year, make, model, category, words, used), ...(got && got.median_cents != null ? { n: got.n, low_cents: got.low_cents, median_cents: got.median_cents, high_cents: got.high_cents } : {}) };
     }).filter((p) => p.url);
   }
 

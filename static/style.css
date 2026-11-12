@@ -80,3 +80,7 @@ h4 { margin: 18px 0 6px; }
 .result .margin.pos { color: var(--good); } .result .margin.neg { color: var(--bad); }
 .cta { display: inline-block; margin: 6px 0 0; font-size: 14px; color: #fb923c; font-weight: 600; }
 @media (max-width: 640px) { .check fieldset { grid-template-columns: 1fr 1fr; } }
+
+.chip.fault { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+.seller { font-size: 13px; font-style: italic; color: #44403c; margin: 4px 0; }
+.maxbid { font-weight: 600; }
