@@ -124,7 +124,34 @@
     return `https://www.kbb.com/${slug(make)}/${slug(model)}/${y}/`;
   }
 
-  const LotScore = { score, marketValue, buyerFee, kbbUrl };
+  // Used mechanical parts to price on eBay (same list and categories as adapters/parts.py).
+  const PARTS = [
+    ["engine", "Used engine", "33615"], ["transmission", "Used transmission", "171115"],
+    ["cylinder_head", "Cylinder head", "33617"], ["turbo", "Turbocharger", "33742"],
+    ["alternator", "Alternator", "177697"], ["starter", "Starter", "177699"],
+    ["radiator", "Radiator", "33602"], ["ac_compressor", "A/C compressor", "33543"],
+  ];
+
+  // Used, Buy It Now listings of one part for this car on ebay.com (a plain link).
+  function partsUrl(year, make, model, category) {
+    const y = Number(year);
+    if (!make || !model || !(y >= 1980 && y <= 2039)) return null;
+    const q = new URLSearchParams({ _nkw: `${y} ${make} ${model}`, _sacat: category, LH_ItemCondition: "3000", LH_BIN: "1" });
+    return "https://www.ebay.com/sch/i.html?" + q.toString();
+  }
+
+  // The published eBay prices for this car (api/parts.json), else a link for each part.
+  function partsFor(published, year, make, model) {
+    const car = ((published && published.cars) || []).find(
+      (c) => c.year === Number(year) && c.make === String(make || "").toLowerCase() && c.model === String(model || "").toLowerCase(),
+    );
+    return PARTS.map(([key, label, category]) => {
+      const got = car && car.parts && car.parts[key];
+      return { key, label, url: partsUrl(year, make, model, category), ...(got && got.median_cents != null ? { n: got.n, low_cents: got.low_cents, median_cents: got.median_cents, high_cents: got.high_cents } : {}) };
+    }).filter((p) => p.url);
+  }
+
+  const LotScore = { score, marketValue, buyerFee, kbbUrl, partsUrl, partsFor, PARTS };
   if (typeof module !== "undefined" && module.exports) module.exports = LotScore;
   else root.LotScore = LotScore;
 })(typeof globalThis !== "undefined" ? globalThis : this);

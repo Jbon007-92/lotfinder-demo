@@ -41,6 +41,23 @@ function valueLines(d) {
   return out;
 }
 
+// Used parts prices on eBay that fit this car: shown for the buyer, not added to the margin.
+function partsTable(d) {
+  const rows = d.parts_prices ? Object.values(d.parts_prices) : [];
+  if (!rows.length) return [];
+  const link = (url, text) => el("a", { href: url, target: "_blank", rel: "noopener noreferrer", text });
+  const table = el("table", {});
+  for (const p of rows) {
+    table.append(el("tr", {},
+      el("td", { text: p.label }),
+      el("td", { class: "n", text: p.median_cents != null ? usd(p.median_cents) : "—" }),
+      el("td", { class: "small", text: p.median_cents != null ? `${usd(p.low_cents)}–${usd(p.high_cents)}, ${p.n} listings` : "too few listings" }),
+      el("td", {}, link(p.url, "eBay ↗"))));
+  }
+  return [el("h4", { text: "Used parts on eBay that fit this car" }), table,
+    el("p", { class: "small", text: "Median price of used Buy It Now listings whose fitment matches this year, make and model. Not added to the margin: you pick the parts it needs." })];
+}
+
 function el(tag, attrs = {}, ...kids) {
   const node = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
@@ -238,6 +255,7 @@ async function openLot(id) {
           usd(d.labor_rate_cents) + "/h; hidden damage (frame, flood, electrical) is not visible in photos."
         : "These photos have not been analyzed yet, so the cost below leaves repairs out. Look at the photos and the eBay listing before you bid.",
     }),
+    ...partsTable(d),
     el("h4", { text: "Parts to replace or repair" }),
     parts,
     el("h4", { text: "What it really costs" }),
