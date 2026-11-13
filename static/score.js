@@ -148,11 +148,12 @@
   }
 
   // The published eBay prices for this car (api/parts.json), else a link for each part.
-  function partsFor(published, year, make, model) {
+  function partsFor(published, year, make, model, keys) {
     const car = ((published && published.cars) || []).find(
       (c) => c.year === Number(year) && c.make === String(make || "").toLowerCase() && c.model === String(model || "").toLowerCase(),
     );
-    return PARTS.slice(0, 8).map(([key, label, category, words, used]) => {
+    const list = keys ? PARTS.filter((p) => keys.includes(p[0])) : PARTS.slice(0, 8);
+    return list.map(([key, label, category, words, used]) => {
       const got = car && car.parts && car.parts[key];
       return { key, label, url: partsUrl(year, make, model, category, words, used), ...(got && got.median_cents != null ? { n: got.n, low_cents: got.low_cents, median_cents: got.median_cents, high_cents: got.high_cents } : {}) };
     }).filter((p) => p.url);
