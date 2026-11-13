@@ -28,6 +28,16 @@
     <label>Year
       <select id="year" name="year"><option value="">Any year</option></select>
     </label>
+    <label>Your ZIP
+      <input id="zip" name="zip" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" placeholder="e.g. 07001" size="6">
+    </label>
+    <label>Within
+      <select id="within" name="within">
+        <option value="">Any distance</option><option value="100">100 mi</option>
+        <option value="250">250 mi</option><option value="500">500 mi</option>
+        <option value="1000">1,000 mi</option>
+      </select>
+    </label>
     <button type="submit">Find deals</button>
   </form>
 

@@ -158,7 +158,27 @@
     }).filter((p) => p.url);
   }
 
-  const LotScore = { score, marketValue, buyerFee, kbbUrl, partsUrl, partsFor, PARTS };
+  // Road miles between two 3-digit ZIP areas: straight line x 1.2 (roads wind).
+  // `table` is zip3.json: {"070": [lat, lon], ...} from the US Census ZIP areas.
+  function milesBetween(a, b, table) {
+    const p = table && table[String(a || "").slice(0, 3)];
+    const q = table && table[String(b || "").slice(0, 3)];
+    if (!p || !q) return null;
+    const rad = (d) => (d * Math.PI) / 180;
+    const dLat = rad(q[0] - p[0]);
+    const dLon = rad(q[1] - p[1]);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(p[0])) * Math.cos(rad(q[0])) * Math.sin(dLon / 2) ** 2;
+    return Math.round(3959 * 2 * Math.asin(Math.sqrt(h)) * 1.2);
+  }
+
+  // Open-carrier shipping estimate: dearer per mile on short runs, $200 at the least.
+  function transportCents(miles) {
+    if (miles == null) return null;
+    const rate = miles <= 500 ? 110 : miles <= 1000 ? 85 : 65; // cents per mile
+    return Math.max(200_00, Math.round(miles * rate / 100) * 100);
+  }
+
+  const LotScore = { milesBetween, transportCents, score, marketValue, buyerFee, kbbUrl, partsUrl, partsFor, PARTS };
   if (typeof module !== "undefined" && module.exports) module.exports = LotScore;
   else root.LotScore = LotScore;
 })(typeof globalThis !== "undefined" ? globalThis : this);

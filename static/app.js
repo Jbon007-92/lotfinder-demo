@@ -87,6 +87,29 @@ function el(tag, attrs = {}, ...kids) {
 }
 
 let meta = { makes: {}, years: [] };
+let zip3 = null; // ZIP area centres, loaded once
+
+// Your ZIP and distance: transport is re-quoted by road miles instead of the flat figure,
+// and profit, ROI and the max bid move with it. Returns a copy; null miles: unknown.
+function withDistance(lot) {
+  const home = ($("zip").value || "").trim();
+  if (!/^\d{5}$/.test(home) || !zip3 || !lot.zip3) return { ...lot, miles: null };
+  const miles = LotScore.milesBetween(home, lot.zip3, zip3);
+  const quote = LotScore.transportCents(miles);
+  if (quote == null) return { ...lot, miles: null };
+  const delta = quote - lot.transport_cents;
+  const allIn = lot.all_in_cents + delta;
+  const margin = lot.margin_cents - delta;
+  const out = { ...lot, miles, transport_cents: quote, all_in_cents: allIn, margin_cents: margin,
+    margin_pct: allIn ? Math.round((1000 * margin) / allIn) / 10 : 0 };
+  if (lot.margin_low_cents != null) out.margin_low_cents = lot.margin_low_cents - delta;
+  if (lot.margin_high_cents != null) out.margin_high_cents = lot.margin_high_cents - delta;
+  if (lot.special && !lot.special.unclear) {
+    const top = lot.special.max_bid_cents - Math.round(delta / (1 + lot.special.target_roi));
+    out.special = { ...lot.special, max_bid_cents: Math.max(0, top) };
+  }
+  return out;
+}
 
 // Static mode (GitHub Pages): the same JSON as the API, pre-built as files, filtered here.
 const STATIC = document.documentElement.dataset.static === "1";
@@ -139,6 +162,10 @@ async function search() {
 }
 
 function render(lots) {
+  const within = Number($("within").value) || 0;
+  lots = lots.map(withDistance);
+  if (within) lots = lots.filter((l) => l.miles != null && l.miles <= within);
+  lots.sort((a, b) => b.margin_cents - a.margin_cents);
   // Lots whose photos were analyzed first: an unanalyzed margin leaves repairs out.
   lots = [...lots.filter((l) => l.photos_read), ...lots.filter((l) => !l.photos_read)];
   // Specials with a stated fault and a value first; unclear faults and unknown values after.
@@ -162,7 +189,8 @@ function render(lots) {
         el("h3", { text: lot.title }),
         el("div", {
           class: "meta",
-          text: `${lot.odometer_mi.toLocaleString("en-US")} mi · ${lot.location} · ${lot.source}`,
+          text: `${lot.odometer_mi.toLocaleString("en-US")} mi · ${lot.location}` +
+            (lot.miles != null ? ` · ≈${lot.miles.toLocaleString("en-US")} mi away` : "") + ` · ${lot.source}`,
         }),
         lot.special ? el("div", { class: "seller", text: sellerSays(lot.special) }) : null,
         el(
@@ -194,6 +222,7 @@ function render(lots) {
         el("div", { class: "margin " + marginClass, text: usd(lot.margin_cents) }),
         el("div", { class: "small", text: lot.special ? `profit at this price · ROI ${lot.margin_pct}%` : lot.photos_read ? `est. margin · ${lot.margin_pct}%` : "margin before repairs" }),
         el("div", { class: "small", text: `all-in ${usd(lot.all_in_cents)} · price ${usd(lot.bid_cents)}` }),
+        lot.miles != null ? el("div", { class: "small", text: `transport ≈${usd(lot.transport_cents)}` }) : null,
         lot.special ? el("div", { class: "small maxbid", text: maxBidText(lot.special) }) : null,
       ),
     );
@@ -216,7 +245,7 @@ function row(label, cents, cls = "") {
 async function openLot(id) {
   let d;
   try {
-    d = await getJSON(API.lot(id));
+    d = withDistance(await getJSON(API.lot(id)));
   } catch (err) {
     $("status").textContent = "Could not load lot: " + err.message;
     return;
@@ -266,7 +295,7 @@ async function openLot(id) {
   cost.append(
     row(sp ? `Parts, used from eBay (cheapest ${usd(d.repairs_low_cents)}, worst case ${usd(d.repairs_high_cents)})`
       : `Estimated repairs (${usd(d.repairs_low_cents)}–${usd(d.repairs_high_cents)})`, d.repairs_cents),
-    row("Transport (flat estimate)", d.transport_cents),
+    row(d.miles != null ? `Transport (≈${d.miles.toLocaleString("en-US")} road mi, estimate)` : "Transport (flat estimate: enter your ZIP)", d.transport_cents),
     row("All-in cost", d.all_in_cents, "total"),
     row(sp ? "Sells for, running, good condition" : "Market value once repaired", d.market_value_cents),
     row(`Estimated ${sp ? "profit" : "margin"} (${usd(d.margin_low_cents)} to ${usd(d.margin_high_cents)})`, d.margin_cents, "total"),
@@ -318,6 +347,26 @@ async function init() {
   if (q.get("model")) $("model").value = q.get("model");
   if (q.get("year")) $("year").value = q.get("year");
   $("make").addEventListener("change", syncModels);
+  try {
+    $("zip").value = localStorage.getItem("lf-zip") || "";
+    $("within").value = localStorage.getItem("lf-within") || "";
+  } catch {
+    /* storage blocked: start empty */
+  }
+  for (const id of ["zip", "within"]) {
+    $(id).addEventListener("change", () => {
+      try {
+        localStorage.setItem("lf-" + id, $(id).value);
+      } catch {
+        /* storage blocked: not remembered */
+      }
+    });
+  }
+  try {
+    zip3 = await getJSON(STATIC ? "static/zip3.json" : "static/zip3.json");
+  } catch {
+    zip3 = null; // distances off; everything else works
+  }
   $("search").addEventListener("submit", (e) => {
     e.preventDefault();
     search();
